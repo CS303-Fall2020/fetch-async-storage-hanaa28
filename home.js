@@ -10,7 +10,8 @@ import {
   Keyboard,
   Button,
   RefreshControlComponent,
-  AsyncStorage
+  AsyncStorage,
+  ActivityIndicator
 } from "react-native";
 import Header from "../components/header";
 import TodoItem from "../components/todoItem";
@@ -18,11 +19,19 @@ import AddTodo from "../components/addTodo";
 
 export default function Home({ navigation },props) {
   const [todos, setTodos] = useState([]);
-useEffect(async () => {
-const response = await fetch("https://jsonplaceholder.typicode.com/todos?userId=1")
-const data = await response.json();
-const item= data;
-setTodos(item)
+  const [loading,setLoading] = useState(true);
+useEffect( () => {
+fetch("https://jsonplaceholder.typicode.com/todos?userId=1")
+.then((response) => response.json())
+.then(response => {
+  setTodos(response),
+  setLoading(false)
+})
+.then((json)=> console.log(json))
+.catch(e => {
+console.error(e);
+  
+});
 },[])
 
   const edit =(id, title) => {
@@ -37,6 +46,19 @@ setTodos(item)
     })
     navigation.navigate('Home');
   } 
+  const onRefresh = async () =>{
+    setLoading(!loading);
+    return fetch ('https://jsonplaceholder.typicode.com/todos?userId=1')
+    .then((response) => response.json())
+    .then((resonseJson)=>{
+      setTodos(resonseJson),
+      setLoading(false)
+    })
+    .catch((error)=>{
+      console.error(error);
+  
+    });
+  };
 
   const pressHandler =id=> {
     setTodos(prevTodos => {
@@ -77,12 +99,18 @@ setTodos(item)
         Keyboard.dismiss();
         console.log("dismissed keyboard");
       }}
+      
     >
+
       <View style={styles.container}>
-        <Header />
+   
         <View style={styles.contant}>
           <AddTodo submitHandler={submitHandler} />
           <View style={styles.list}>
+            {(loading)?(
+              <ActivityIndicator size ="large" color ="skyblue" />
+            )
+           :(
             <FlatList
               data={todos}
               renderItem={({ item }) => (
@@ -92,12 +120,14 @@ setTodos(item)
                  pressHandler1={pressHandler1}
                   pressHandler2={pressHandler2}
                   edit={edit}  />
-             </View> )}
-            />
+             </View> )}  />)}
           </View>
         </View>
-        <Button title='go to review' onPress={pressHandler1} />
+     <View style={styles.Hanaa}>
+        <Button title='Refresh' onPress={onRefresh} color= 'black' color='black' hight ='120' width ='5' />
+        </View>
       </View>
+ 
     </TouchableWithoutFeedback>
   );
 }
@@ -115,6 +145,13 @@ const styles = StyleSheet.create({
   list: {
     marginTop: 28,
     flex: 1 
-
-  }
+},
+Hanaa:{
+  marginBottom: 20,
+  paddingHorizontal: 70,
+  // paddingVertical: 6,
+  borderBottomWidth: 1,
+  borderBottomColor: '#ddd',
+  borderStyle: 'dashed'
+}
 });
